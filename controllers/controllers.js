@@ -1,5 +1,4 @@
 const list_teachers = require("../data/teachers");
-let nextID = 6;
 
 function consultTeachers(req, res) {
   res.json(list_teachers);
@@ -26,60 +25,46 @@ function consult_a_Teacher(req, res) {
   res.json(instructor);
 }
 
-function register_a_Teacher(req, res) {
+let nextID = 6;
+
+function teacher_Validation(instructor) {
   const shift = ["Matutino", "Vespertino", "Noturno"];
 
-  if (!req.body.nome) {
-    res.status(400);
-    res.json({
-      erro: "O campo nome é obrigatório",
-    });
-    return;
+  if (!instructor.nome) {
+    return "O campo nome é obrigatório";
   }
 
-  if (!req.body.turno) {
-    res.status(400);
-    res.json({
-      erro: "O campo turno deve ser preenchido.",
-    });
-    return;
+  if (!instructor.turno) {
+    return "O campo turno deve ser preenchido.";
   }
 
-  if (!req.body.materia) {
-    res.status(400);
-    res.json({
-      erro: "O campo materia deve ser preenchido.",
-    });
-    return;
+  if (!instructor.materia) {
+    return "O campo materia deve ser preenchido.";
   }
 
-  if (typeof req.body.nome !== "string") {
-    res.status(400);
-    res.json({
-      erro: "O campo nome deve ser preenchido como texto",
-    });
+  if (typeof instructor.nome !== "string") {
+    return "O campo nome deve ser preenchido como texto";
   }
 
-  if (typeof req.body.turno !== "string") {
-    res.status(400);
-    res.json({
-      erro: "O campo turno deve ser preenchido como texto",
-    });
+  if (typeof instructor.turno !== "string") {
+    return "O campo turno deve ser preenchido como texto";
   }
 
-  if (typeof req.body.materia !== "string") {
-    res.status(400);
-    res.json({
-      erro: "O campo materia deve ser preenchido como texto",
-    });
+  if (typeof instructor.materia !== "string") {
+    return "O campo materia deve ser preenchido como texto";
   }
 
-  if (!shift.includes(req.body.turno)) {
-    res.status(400);
-    res.json({
-      erro: "Turno inválido",
-    });
+  if (!shift.includes(instructor.turno)) {
+    return "Turno inválido";
+  }
+}
 
+function register_a_Teacher(req, res) {
+  const erro = teacher_Validation(req.body);
+
+  if (erro) {
+    res.status(400);
+    res.json({ erro });
     return;
   }
 
@@ -103,6 +88,31 @@ function edit_Teacher(req, res) {
       instructor.id === Number(req.params.idConsultado)
   );
 
+  if (!instructor) {
+    res.status(404);
+    res.json({
+      erro:
+        "Professor " +
+        req.params.idConsultado +
+        " não foi encontrado.",
+    });
+    return;
+  }
+
+  const erro = teacher_Validation({
+    nome: req.body.nome || instructor.nome,
+    turno: req.body.turno || instructor.turno,
+    materia: req.body.materia || instructor.materia,
+  });
+
+  if (erro) {
+    res.status(400);
+    res.json({
+      erro,
+    });
+    return;
+  }
+
   if (req.body.nome != undefined) {
     instructor.nome = req.body.nome;
   }
@@ -119,6 +129,22 @@ function edit_Teacher(req, res) {
 }
 
 function replace_or_create(req, res) {
+  const erro = teacher_Validation(req.body);
+
+  if (erro) {
+    res.status(400);
+    res.json({ erro });
+    return;
+  }
+
+  if (req.body.id != Number(req.params.idConsultado)) {
+    res.status(400);
+    res.json({
+      erro: "O id deve ser igual na rota e no corpo da requisição",
+    });
+    return;
+  }
+
   const instructor = list_teachers.find(
     (instructor) =>
       instructor.id === Number(req.params.idConsultado)
@@ -145,6 +171,17 @@ function deleteRegistration(req, res) {
     (instructor) =>
       instructor.id === Number(req.params.idConsultado)
   );
+
+  if (!instructor) {
+    res.status(404);
+    res.json({
+      erro:
+        "Professor " +
+        req.params.idConsultado +
+        " não foi encontrado.",
+    });
+    return;
+  }
 
   const index_teacher = list_teachers.indexOf(instructor);
 
