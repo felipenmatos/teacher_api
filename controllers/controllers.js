@@ -11,11 +11,77 @@ function consult_a_Teacher(req, res) {
       instructor.id === Number(req.params.idConsultado)
   );
 
+  if (!instructor) {
+    res.status(404);
+    res.json({
+      erro:
+        "Instrutor " +
+        req.params.idConsultado +
+        " não existe",
+    });
+
+    return;
+  }
+
   res.json(instructor);
 }
 
 function register_a_Teacher(req, res) {
-  console.log(req.body);
+  const shift = ["Matutino", "Vespertino", "Noturno"];
+
+  if (!req.body.nome) {
+    res.status(400);
+    res.json({
+      erro: "O campo nome é obrigatório",
+    });
+    return;
+  }
+
+  if (!req.body.turno) {
+    res.status(400);
+    res.json({
+      erro: "O campo turno deve ser preenchido.",
+    });
+    return;
+  }
+
+  if (!req.body.materia) {
+    res.status(400);
+    res.json({
+      erro: "O campo materia deve ser preenchido.",
+    });
+    return;
+  }
+
+  if (typeof req.body.nome !== "string") {
+    res.status(400);
+    res.json({
+      erro: "O campo nome deve ser preenchido como texto",
+    });
+  }
+
+  if (typeof req.body.turno !== "string") {
+    res.status(400);
+    res.json({
+      erro: "O campo turno deve ser preenchido como texto",
+    });
+  }
+
+  if (typeof req.body.materia !== "string") {
+    res.status(400);
+    res.json({
+      erro: "O campo materia deve ser preenchido como texto",
+    });
+  }
+
+  if (!shift.includes(req.body.turno)) {
+    res.status(400);
+    res.json({
+      erro: "Turno inválido",
+    });
+
+    return;
+  }
 
   const new_teatcher = {
     id: nextID,
@@ -87,10 +153,11 @@ function deleteRegistration(req, res) {
   res.json(instructor);
 }
 
-module.exports =
-  {consultTeachers,
+module.exports = {
+  consultTeachers,
   consult_a_Teacher,
   register_a_Teacher,
   edit_Teacher,
   replace_or_create,
-  deleteRegistration};
+  deleteRegistration,
+};
